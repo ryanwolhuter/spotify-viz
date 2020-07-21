@@ -3,11 +3,11 @@ import Visualizer from './classes/visualizer'
 export default class Template extends Visualizer {
   constructor () {
     super({ volumeSmoothing: 100 })
+    this.hue = 0
   }
 
   hooks () {
     this.sync.on('tatum', tatum => {
-
     })
 
     this.sync.on('segment', segment => {
@@ -15,7 +15,7 @@ export default class Template extends Visualizer {
     })
 
     this.sync.on('beat', beat => {
-
+      this.hue += 20
     })
 
     this.sync.on('bar', bar => {
@@ -34,5 +34,7 @@ export default class Template extends Visualizer {
     // this.sync.beat
     // this.sync.bar
     // this.sync.section
+    ctx.fillStyle = `hsl(${this.hue}, 50%, 50%)`
+    ctx.fillRect(0, 0, width, height)
   }
 }
