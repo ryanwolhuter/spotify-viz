@@ -6,19 +6,20 @@ const state = {
   speed: 1,
   size: 85,
   hue: 0,
-  saturation: 20,
-  lightness: 20,
+  saturation: 80,
+  lightness: 80,
   colorRate: 1,
   stroke: 'inverse',
   background: 'inverse'
 }
 
 export default class Template extends Visualizer {
-  constructor () {
+  constructor() {
     super({ volumeSmoothing: 100 })
+    init(this.sketch.width, this.sketch.height)
   }
 
-  hooks () {
+  hooks() {
     this.sync.on('tatum', tatum => {
     })
 
@@ -27,7 +28,11 @@ export default class Template extends Visualizer {
     })
 
     this.sync.on('beat', beat => {
+      if (state.hue >= 360) {
+        state.hue = 0
+      }
       state.hue += 20
+      this.sketch.ctx.fillStyle = `hsl(${state.hue}, ${state.saturation}%, ${state.lightness}%)`
     })
 
     this.sync.on('bar', bar => {
@@ -39,19 +44,13 @@ export default class Template extends Visualizer {
     })
   }
 
-  paint ({ ctx, height, width, now }) {
+  paint({ ctx, height, width, now }) {
     // this.sync.volume
     // this.sync.tatum
     // this.sync.segment
     // this.sync.beat
     // this.sync.bar
     // this.sync.section
-    ctx.fillStyle = `hsl(${state.hue}, 50%, 50%)`
-    ctx.fillRect(0, 0, width/2, height/2)
-    if (state.hue >= 360) {
-      state.hue = 0
-    }
-    state.hue += state.colorRate
 
     if (state.background === 'light') {
       document.body.style.backgroundColor = 'white'
@@ -65,16 +64,20 @@ export default class Template extends Visualizer {
     if (state.background === 'inverse') {
       document.body.style.backgroundColor = `hsl(${360 - state.hue}, ${100 - state.saturation}%, ${100 - state.lightness}%)`
     }
+
+    state.particles.forEach(particle => {
+      particle.update(ctx, width, height)
+    })
   }
 }
 
 class Particle {
-  constructor() {
-    this.x = Math.random() * canvas.width
-    this.y = Math.random() * canvas.height
-    this.radius = Math.random() * particleSize
-    this.speedX = Math.random() * particleSpeed
-    this.speedY = Math.random() * particleSpeed
+  constructor(width, height) {
+    this.x = Math.random() * width
+    this.y = Math.random() * height
+    this.radius = Math.random() * state.size
+    this.speedX = Math.random() * state.speed
+    this.speedY = Math.random() * state.speed
   }
 
   draw(ctx) {
@@ -99,39 +102,31 @@ class Particle {
     ctx.stroke()
   }
 
-  update() {
+  update(ctx, width, height) {
     this.x += this.speedX
     this.y += this.speedY
 
-    if (this.x + this.radius > canvas.width
+    if (this.x + this.radius > width
       || this.x - this.radius < 0) {
       this.speedX = -this.speedX
     }
 
-    if (this.y + this.radius > canvas.height
+    if (this.y + this.radius > height
       || this.y - this.radius < 0) {
       this.speedY = -this.speedY
     }
-    this.draw()
+    this.draw(ctx)
   }
 }
 
-function init() {
-  for (let i = 0; i < particleCount; i++) {
-    particlesArray.push(new Particle())
+function init(width, height) {
+  for (let i = 0; i < state.count; i++) {
+    state.particles.push(new Particle(width, height))
   }
-}
-
-function animate() {
-  for (let i = 0; i < particlesArray.length; i++) {
-    const element = particlesArray[i]
-    element.update()
-  }
-  requestAnimationFrame(animate)
 }
 
 function reInit() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-  particlesArray.length = 0
+  state.particles.length = 0
   init()
 }
