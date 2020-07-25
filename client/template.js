@@ -3,14 +3,15 @@ import Visualizer from './classes/visualizer'
 const state = {
   particles: [],
   count: 30,
-  speed: 1,
+  speed: 1.5,
   size: 85,
   hue: 0,
   saturation: 80,
   lightness: 80,
   colorRate: 1,
   stroke: 'inverse',
-  background: 'inverse'
+  background: 'inverse',
+  shrink: false
 }
 
 export default class Template extends Visualizer {
@@ -24,10 +25,23 @@ export default class Template extends Visualizer {
     })
 
     this.sync.on('segment', segment => {
-
+      state.particles.forEach(particle => {
+        if (state.shrink) {
+          particle.vibrate(-5)
+        } else {
+          particle.vibrate(5)
+        }
+      })
     })
 
     this.sync.on('beat', beat => {
+      state.particles.forEach(particle => {
+        if (state.shrink) {
+          particle.vibrate(10)
+        } else {
+          particle.vibrate(-10)
+        }
+      })
       if (state.hue >= 360) {
         state.hue = 0
       }
@@ -36,7 +50,14 @@ export default class Template extends Visualizer {
     })
 
     this.sync.on('bar', bar => {
-
+      state.shrink = !state.shrink
+            state.particles.forEach(particle => {
+        if (state.shrink) {
+          particle.vibrate(-5)
+        } else {
+          particle.vibrate(5)
+        }
+      })
     })
 
     this.sync.on('section', section => {
@@ -81,6 +102,9 @@ class Particle {
   }
 
   draw(ctx) {
+    if (this.radius <= 0) {
+      this.radius = 1
+    }
     ctx.beginPath()
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
     ctx.fillStyle = `hsl(${state.hue}, ${state.saturation}%, ${state.lightness}%)`
@@ -103,6 +127,7 @@ class Particle {
   }
 
   update(ctx, width, height) {
+
     this.x += this.speedX
     this.y += this.speedY
 
@@ -116,6 +141,10 @@ class Particle {
       this.speedY = -this.speedY
     }
     this.draw(ctx)
+  }
+
+  vibrate(amount) {
+    this.radius += amount
   }
 }
 
