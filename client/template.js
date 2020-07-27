@@ -2,9 +2,9 @@ import Visualizer from './classes/visualizer'
 
 const state = {
   particles: [],
-  count: 1,
+  count: 10,
   speed: 1.5,
-  size: 85,
+  size: 25,
   hue: 0,
   saturation: 80,
   lightness: 80,
@@ -26,21 +26,13 @@ export default class Template extends Visualizer {
 
     this.sync.on('segment', segment => {
       state.particles.forEach(particle => {
-        if (state.shrink) {
-          particle.vibrate(-5, this.sync.volume, this.sketch.ctx)
-        } else {
-          particle.vibrate(5, this.sync.volume, this.sketch.ctx)
-        }
+        particle.vibrate(5, this.sync.volume, this.sketch.ctx)
       })
     })
 
     this.sync.on('beat', beat => {
       state.particles.forEach(particle => {
-        if (state.shrink) {
-          particle.vibrate(10, this.sync.volume, this.sketch.ctx)
-        } else {
-          particle.vibrate(-10, this.sync.volume, this.sketch.ctx)
-        }
+        particle.vibrate(10, this.sync.volume, this.sketch.ctx)
       })
       if (state.hue >= 360) {
         state.hue = 0
@@ -51,17 +43,12 @@ export default class Template extends Visualizer {
 
     this.sync.on('bar', bar => {
       state.shrink = !state.shrink
-            state.particles.forEach(particle => {
-        if (state.shrink) {
-          particle.vibrate(-5, this.sync.volume, this.sketch.ctx)
-        } else {
-          particle.vibrate(5, this.sync.volume, this.sketch.ctx)
-        }
+      state.particles.forEach(particle => {
+        particle.vibrate(5, this.sync.volume, this.sketch.ctx)
       })
     })
 
     this.sync.on('section', section => {
-
     })
   }
 
@@ -129,7 +116,6 @@ class Particle {
   }
 
   update(ctx) {
-
     this.x += this.speedX
     this.y += this.speedY
 
@@ -146,7 +132,8 @@ class Particle {
   }
 
   vibrate(amount, volume = 1, ctx = null) {
-    this.radius += amount * volume
+    const sign = state.shrink ? -1 : 1
+    this.radius += sign * amount * volume
     this.update(ctx)
   }
 }
