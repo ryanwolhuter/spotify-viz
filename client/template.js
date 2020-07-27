@@ -2,7 +2,7 @@ import Visualizer from './classes/visualizer'
 
 const state = {
   particles: [],
-  count: 30,
+  count: 1,
   speed: 1.5,
   size: 85,
   hue: 0,
@@ -27,9 +27,9 @@ export default class Template extends Visualizer {
     this.sync.on('segment', segment => {
       state.particles.forEach(particle => {
         if (state.shrink) {
-          particle.vibrate(-5)
+          particle.vibrate(-5, this.sync.volume, this.sketch.ctx)
         } else {
-          particle.vibrate(5)
+          particle.vibrate(5, this.sync.volume, this.sketch.ctx)
         }
       })
     })
@@ -37,15 +37,15 @@ export default class Template extends Visualizer {
     this.sync.on('beat', beat => {
       state.particles.forEach(particle => {
         if (state.shrink) {
-          particle.vibrate(10)
+          particle.vibrate(10, this.sync.volume, this.sketch.ctx)
         } else {
-          particle.vibrate(-10)
+          particle.vibrate(-10, this.sync.volume, this.sketch.ctx)
         }
       })
       if (state.hue >= 360) {
         state.hue = 0
       }
-      state.hue += 20
+      state.hue += 10
       this.sketch.ctx.fillStyle = `hsl(${state.hue}, ${state.saturation}%, ${state.lightness}%)`
     })
 
@@ -53,9 +53,9 @@ export default class Template extends Visualizer {
       state.shrink = !state.shrink
             state.particles.forEach(particle => {
         if (state.shrink) {
-          particle.vibrate(-5)
+          particle.vibrate(-5, this.sync.volume, this.sketch.ctx)
         } else {
-          particle.vibrate(5)
+          particle.vibrate(5, this.sync.volume, this.sketch.ctx)
         }
       })
     })
@@ -96,6 +96,8 @@ class Particle {
   constructor(width, height) {
     this.x = Math.random() * width
     this.y = Math.random() * height
+    this.canvasWidth = width
+    this.canvasHeight = height
     this.radius = Math.random() * state.size
     this.speedX = Math.random() * state.speed
     this.speedY = Math.random() * state.speed
@@ -126,25 +128,26 @@ class Particle {
     ctx.stroke()
   }
 
-  update(ctx, width, height) {
+  update(ctx) {
 
     this.x += this.speedX
     this.y += this.speedY
 
-    if (this.x + this.radius > width
+    if (this.x + this.radius > this.canvasWidth
       || this.x - this.radius < 0) {
       this.speedX = -this.speedX
     }
 
-    if (this.y + this.radius > height
+    if (this.y + this.radius > this.canvasHeight
       || this.y - this.radius < 0) {
       this.speedY = -this.speedY
     }
     this.draw(ctx)
   }
 
-  vibrate(amount) {
-    this.radius += amount
+  vibrate(amount, volume = 1, ctx = null) {
+    this.radius += amount * volume
+    this.update(ctx)
   }
 }
 
